@@ -23,12 +23,28 @@ class PartOfSpeechStat():
             self.partOfSpeech[pos] = {}
         print("init ok")
     '''
-        pos为指定词性，n为前n个出现次数最高的词
+        pos为指定词性，n为前n个出现次数最高的词, 将partOfSpeech1[pos]里面的词频减去partOfSpeech2[pos]里面的词频
     '''
-    def getTopN(self, pos, n):
-        tempList = list(zip(self.partOfSpeech[pos], self.partOfSpeech[pos].values()))
+    def compareWithTwoArticle(self, posList, partOfSpeech2, partOfSpeech1 = {}):
+        partOfSpeech1 = partOfSpeech1 if partOfSpeech1 else self.partOfSpeech
+        newPartOfSpeech = {}
+        for pos in posList:
+            newPartOfSpeech[pos] = {}
+            if pos in partOfSpeech1 and pos in partOfSpeech2:
+                for word in partOfSpeech1[pos]:
+                    if word in partOfSpeech2[pos]:
+                        newPartOfSpeech[pos][word] = partOfSpeech1[pos][word] - partOfSpeech2[pos][word]
+                    else:
+                        newPartOfSpeech[pos][word] = partOfSpeech1[pos][word] - 0
+            else:
+                print("输入的统计表或类内统计表不存在词性{}的字典".format(pos))
+        return newPartOfSpeech
+
+    def getTopN(self, pos, n, partOfSpeechTemp={}):
+        partOfSpeech = partOfSpeechTemp if partOfSpeechTemp else self.partOfSpeech
+        tempList = list(zip(partOfSpeech[pos], partOfSpeech[pos].values()))
         result = sorted(tempList, key = lambda x : -x[1])[:n]
-        print(result)
+        # print(result)
         return result
     '''
         全角转半角
@@ -95,11 +111,19 @@ class PartOfSpeechStat():
 if __name__=='__main__':
     article = codecs.open('/Users/zhang/Documents/琼瑶小说爬虫/金庸.txt', 'r', encoding='utf-8')
     fileLines = article.readlines()
-    test = PartOfSpeechStat()
+    qiongyao = PartOfSpeechStat()
     # test.createWordFreqCount('金庸词频', fileLines)
-    test.load('琼瑶词频')
-    test.getTopN('a', 100)
+    qiongyao.load('琼瑶词频')
+    qiongyao.getTopN('a', 100)
     # print(test.partOfSpeech)
-    test.load('金庸词频')
-    test.getTopN('a', 100)
+    jinyong = PartOfSpeechStat()
+    jinyong.load('金庸词频')
+    jinyong.getTopN('a', 100)
+    # qiongyao.getTopN('n', 100, jinyong.partOfSpeech)
+    print("\n\n")
+    new = qiongyao.compareWithTwoArticle(['n', 'a'], jinyong.partOfSpeech, qiongyao.partOfSpeech)
+    print(PartOfSpeechStat().getTopN('a', 600, new)[500:])
+    new = jinyong.compareWithTwoArticle(['n', 'a'], qiongyao.partOfSpeech)
+    print(PartOfSpeechStat().getTopN('a', 600, new)[500:])
+
     
